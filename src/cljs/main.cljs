@@ -191,10 +191,28 @@
 ;; Entry point
 ;;
 
+(em/defsnippet say-hello "/html/fragments.html" [:#hello] []
+  [:button] (em/do-> (em/remove-class "btn-success")
+                      (em/listen :click 
+                          #(em/at js/document
+                            [:#hello] (em/content (return)))))
+  [:input] (em/set-attr :style "display:none")
+  [:p] (em/do-> (em/set-attr :style "")
+                (em/content (str "Hello, " (get (em/from js/document
+                       :myvalue [:#name] (em/get-prop :value)) :myvalue)))))
+
+(em/defsnippet return "/html/fragments.html" [:#hello] []
+  [:button] (em/do->  (em/add-class "btn-success")
+                      (em/listen :click 
+                          #(em/at js/document
+                            [:#hello] (em/content (say-hello)))))
+  [:input] (em/set-attr :style "")
+  [:p] (em/set-attr :style "display:none"))
+
 (defn ^:export redraw-page [& [page-name]]
-  (cond 
-    (= "my-task-list" page-name) (try-show-my-task-list (:id *user*))
-    :else (util/get-data "/task-list" show-task-list)))
+  (em/at js/document
+          [:#hello] (em/content (return)))
+  )
 
 
 (set! (.-onload js/window) redraw-page) 
